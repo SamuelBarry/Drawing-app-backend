@@ -31,7 +31,6 @@ io.on("connection", (socket) => {
     const { error, user } = addUser({ id: socket.id, name, room }); // Ca marche bien comme il faut
     if (error) return callback(error);
 
-    console.log("connection", socket.id);
     socket.emit("message", {
       user: "admin",
       text: `Bienvenue dans le salon ${user.room}, ${user.name} !`,
@@ -57,14 +56,12 @@ io.on("connection", (socket) => {
 
   socket.on("sendMessage", (message, callback) => {
     let user = getUser(socket.id);
-    console.log("send", getUser(socket.id), socket.id, getAllUsers());
 
     io.to(user.room).emit("message", { user: user.name, text: message });
     if (
       message.trim().toLowerCase() === mysteryWord.trim().toLowerCase() &&
       user !== drawer
     ) {
-      console.log(user);
       io.to(user.room).emit("message", {
         user: "admin",
         text: `Félicitations à ${user.name} qui a deviné le mot mystère !`,
@@ -116,7 +113,6 @@ io.on("connection", (socket) => {
     const all_players = getUsersinRoom(room);
     drawer = all_players[Math.floor(Math.random() * all_players.length)];
     mysteryWord = pickRandomWord();
-    console.log(playername, drawer.name);
     if (playername !== drawer.name) {
       // On fait une disjonction selon si la personne qui vient de cliquer est designée dessinateur ou non
       socket.broadcast.to(drawer.id).emit("message", {
@@ -138,7 +134,6 @@ io.on("connection", (socket) => {
   socket.on("disconnect", (reason) => {
     if (reason !== "ping timeout") {
       const user = removeUser(socket.id);
-      console.log("logout", user, socket.id, getAllUsers(), reason);
 
       if (user) {
         io.to(user.room).emit("message", {
@@ -146,7 +141,7 @@ io.on("connection", (socket) => {
           text: `${user.name} has left`,
         });
       }
-    } else console.log("Ping timeout error");
+    }
   });
 });
 
